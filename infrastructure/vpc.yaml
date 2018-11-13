@@ -42,6 +42,7 @@ Resources:
         Properties:
             CidrBlock: !Ref VpcCIDR
             EnableDnsHostnames: true
+            EnableDnsSupport: true
             Tags: 
                 - Key: Name 
                   Value: !Ref EnvironmentName
