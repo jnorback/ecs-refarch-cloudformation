@@ -1,0 +1,21 @@
+MyDB:
+  Type: AWS::RDS::DBInstance
+  Properties:
+    DBSecurityGroups:
+    - Ref: MyDbSecurityByEC2SecurityGroup
+    - Ref: MyDbSecurityByCIDRIPGroup
+    AllocatedStorage: '5'
+    DBInstanceClass: db.m1.small
+    Engine: PostgreSQL
+    MasterUsername: MyName
+    MasterUserPassword: MyPassword
+    BackupRetentionPeriod: '5'
+    #DBSubnetGroupName: String
+    #EngineVersion: String
+    #Iops: Integer
+    #LicenseModel: String
+    #MultiAZ: Boolean
+    #OptionGroupName: String
+    #PreferredBackupWindow: String
+    #PreferredMaintenanceWindow: String
+ 
