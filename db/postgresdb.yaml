@@ -1,21 +1,41 @@
-MyDB:
-  Type: AWS::RDS::DBInstance
-  Properties:
-    DBSecurityGroups:
-    - Ref: MyDbSecurityByEC2SecurityGroup
-    - Ref: MyDbSecurityByCIDRIPGroup
-    AllocatedStorage: '5'
-    DBInstanceClass: db.m1.small
-    Engine: PostgreSQL
-    MasterUsername: MyName
-    MasterUserPassword: MyPassword
-    BackupRetentionPeriod: '5'
-    #DBSubnetGroupName: String
-    #EngineVersion: String
-    #Iops: Integer
-    #LicenseModel: String
-    #MultiAZ: Boolean
-    #OptionGroupName: String
-    #PreferredBackupWindow: String
-    #PreferredMaintenanceWindow: String
+Description:  >
+    This template deploys a Postgres DB spread across multiple
+    Availability Zones 
+
+Parameters:
+    
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+    
+    VPC:
+        Type: AWS::EC2::VPC::Id
+        Description: Choose which VPC the DB should be deployed to
+
+
+Resources:
+    MyDB:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        AllocatedStorage: '5'
+        BackupRetentionPeriod: '5'
+        DBInstanceClass: db.m1.small
+        DBSecurityGroups:
+        - Ref: MyDbSecurityByEC2SecurityGroup
+        - Ref: MyDbSecurityByCIDRIPGroup
+        Engine: PostgreSQL
+        MasterUsername: MyName
+        MasterUserPassword: MyPassword
+        MultiAZ: 'true'
+        Tags:
+                - Key: Name
+                  Value: !Sub ${EnvironmentName}-Postgres-DB
+        #DBSubnetGroupName: String
+        #EngineVersion: String
+        #Iops: Integer
+        #LicenseModel: String
+        #MultiAZ: Boolean
+        #OptionGroupName: String
+        #PreferredBackupWindow: String
+        #PreferredMaintenanceWindow: String
  
