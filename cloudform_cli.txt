@@ -1,0 +1,6 @@
+#Just some commands for testing. Note the aws.cmd which wont work in Linux
+aws.cmd cloudformation validate-template  --template-url https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/master.yaml
+aws.cmd cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name JTechTestApp --region ap-southeast-2 --template-url https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/master.yaml
+
+aws.cmd cloudformation describe-stack-events --stack-name JTechTestApp
+
