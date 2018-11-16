@@ -20,16 +20,16 @@ Resources:
         AllocatedStorage: '5'
         BackupRetentionPeriod: '5'
         DBInstanceClass: db.m1.small
-        DBSecurityGroups:
-        - Ref: MyDbSecurityByEC2SecurityGroup
-        - Ref: MyDbSecurityByCIDRIPGroup
         Engine: PostgreSQL
         MasterUsername: MyName
         MasterUserPassword: MyPassword
         MultiAZ: 'true'
+        Port:  '5432'
         Tags:
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-Postgres-DB
+        VPCSecurityGroups: 
+        - !Ref DatabaseSecurityGroup
         #DBSubnetGroupName: String
         #EngineVersion: String
         #Iops: Integer

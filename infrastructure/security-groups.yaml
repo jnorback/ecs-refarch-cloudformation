@@ -34,18 +34,43 @@ Resources:
     # This security group defines who/where is allowed to access the Application Load Balancer.
     # By default, we've opened this up to the public internet (0.0.0.0/0) but can you restrict
     # it further if you want.
+    # Restricted to only allow HTTP and HTTPS
     LoadBalancerSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties: 
             VpcId: !Ref VPC
             GroupDescription: Access to the load balancer that sits in front of ECS
             SecurityGroupIngress:
-                # Allow access from anywhere to our ECS services
+                # Allow access from anywhere to our ECS services for port 80 http
                 - CidrIp: 0.0.0.0/0
-                  IpProtocol: -1
+                  FromPort: '80'
+                  ToPort:   '80'
+                  IpProtocol: tcp
+                # Allow access from anywhere to our ECS services for port 443 https
+                - CidrIp: 0.0.0.0/0
+                  FromPort: '443'
+                  ToPort:   '443'
+                  IpProtocol: tcp
             Tags: 
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-LoadBalancers
+
+    # This security group defines who/where is allowed to access the Database 
+    # Restricted to only allow HTTP and HTTPS
+    DatabaseSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties: 
+            VpcId: !Ref VPC
+            GroupDescription: Access to the DB from the ECS EC2 instances
+            SecurityGroupIngress:
+                # Only allow inbound access to DB from ECS on port 5432
+                - SourceSecurityGroupId: !Ref ECSHostSecurityGroup
+                  FromPort: '5432'
+                  ToPort:   '5432'
+                  IpProtocol: tcp
+            Tags: 
+                - Key: Name
+                  Value: !Sub ${EnvironmentName}-Database
 
 Outputs:
 
@@ -57,3 +82,6 @@ Outputs:
         Description: A reference to the security group for load balancers
         Value: !Ref LoadBalancerSecurityGroup
 
+    DatabaseSecurityGroup:
+        Description: A reference to the security group for the Database
+        Value: !Ref DatabaseSecurityGroup

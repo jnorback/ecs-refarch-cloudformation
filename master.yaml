@@ -27,6 +27,8 @@ Resources:
                 PublicSubnet2CIDR:  10.180.16.0/21
                 PrivateSubnet1CIDR: 10.180.24.0/21
                 PrivateSubnet2CIDR: 10.180.32.0/21
+                DBPrivSubnet1CIDR:  10.180.40.0/21
+                DBPrivSubnet2CIDR:  10.180.48.0/21
 
     SecurityGroups:
         Type: AWS::CloudFormation::Stack

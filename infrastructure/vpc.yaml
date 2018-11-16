@@ -35,13 +35,13 @@ Parameters:
         Type: String
         Default: 10.192.21.0/24
 
-    PrivateSubnet3CIDR:
-        Description: Please enter the IP range (CIDR notation) for the private subnet in the third Availability Zone
+    DBPrivSubnet1CIDR:
+        Description: Please enter the IP range (CIDR notation) for the Database private subnet in the first Availability Zone
         Type: String
         Default: 10.192.22.0/24
 
-    PrivateSubnet4CIDR:
-        Description: Please enter the IP range (CIDR notation) for the private subnet in the forth Availability Zone
+    DBPrivSubnet2CIDR:
+        Description: Please enter the IP range (CIDR notation) for the Database private subnet in the second Availability Zone
         Type: String
         Default: 10.192.23.0/24
 
@@ -114,27 +114,27 @@ Resources:
                 - Key: Name 
                   Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
 
-    PrivateSubnet3: 
+    DBPrivSubnet1: 
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
             AvailabilityZone: !Select [ 0, !GetAZs '' ]
-            CidrBlock: !Ref PrivateSubnet3CIDR
+            CidrBlock: !Ref DBPrivSubnet1CIDR
             MapPublicIpOnLaunch: false
             Tags: 
                 - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Subnet (AZ3)
+                  Value: !Sub ${EnvironmentName} DB Private Subnet (AZ1)
 
-    PrivateSubnet4: 
+    DBPrivSubnet2: 
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
             AvailabilityZone: !Select [ 1, !GetAZs '' ]
-            CidrBlock: !Ref PrivateSubnet4CIDR
+            CidrBlock: !Ref DBPrivSubnet2CIDR
             MapPublicIpOnLaunch: false
             Tags: 
                 - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Subnet (AZ4)
+                  Value: !Sub ${EnvironmentName} DB Private Subnet (AZ2)
 
     NatGateway1EIP:
         Type: AWS::EC2::EIP
@@ -231,47 +231,47 @@ Resources:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
 
-    PrivateRouteTable3:
+    DBPrivRouteTable1:
         Type: AWS::EC2::RouteTable
         Properties: 
             VpcId: !Ref VPC
             Tags: 
                 - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Routes (AZ3)
+                  Value: !Sub ${EnvironmentName} DB Private Routes (AZ1)
 
-    DefaultPrivateRoute3:
+    DefaultDBPrivRoute1:
         Type: AWS::EC2::Route
         Properties:
-            RouteTableId: !Ref PrivateRouteTable3
+            RouteTableId: !Ref DBPrivRouteTable1
             DestinationCidrBlock: 0.0.0.0/0
             NatGatewayId: !Ref NatGateway1
 
-    PrivateSubnet3RouteTableAssociation:
+    DBPrivSubnet1RouteTableAssociation:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref PrivateRouteTable3
-            SubnetId: !Ref PrivateSubnet3
+            RouteTableId: !Ref DBPrivRouteTable1
+            SubnetId: !Ref DBPrivSubnet1
 
-    PrivateRouteTable4:
+    DBPrivRouteTable2:
         Type: AWS::EC2::RouteTable
         Properties: 
             VpcId: !Ref VPC
             Tags: 
                 - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Routes (AZ4)
+                  Value: !Sub ${EnvironmentName} DB Private Routes (AZ2)
 
-    DefaultPrivateRoute4:
+    DefaultDBPrivRoute2:
         Type: AWS::EC2::Route
         Properties:
-            RouteTableId: !Ref PrivateRouteTable4
+            RouteTableId: !Ref DBPrivRouteTable2
             DestinationCidrBlock: 0.0.0.0/0
             NatGatewayId: !Ref NatGateway2
 
-    PrivateSubnet4RouteTableAssociation:
+    DBPrivSubnet2RouteTableAssociation:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref PrivateRouteTable4
-            SubnetId: !Ref PrivateSubnet4
+            RouteTableId: !Ref DBPrivRouteTable2
+            SubnetId: !Ref DBPrivSubnet2
 
 Outputs: 
 
@@ -286,6 +286,10 @@ Outputs:
     PrivateSubnets:
         Description: A list of the private subnets
         Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+
+    DBPrivSubnets:
+        Description: A list of the DB private subnets
+        Value: !Join [ ",", [ !Ref DBPrivSubnet1, !Ref DBPrivSubnet2 ]]
 
     PublicSubnet1:
         Description: A reference to the public subnet in the 1st Availability Zone
@@ -303,10 +307,19 @@ Outputs:
         Description: A reference to the private subnet in the 2nd Availability Zone
         Value: !Ref PrivateSubnet2
 
-    PrivateSubnet3:
-        Description: A reference to the second private subnet in the 1st Availability Zone
-        Value: !Ref PrivateSubnet3
+    DBPrivSubnet1:
+        Description: A reference to the Database private subnet in the 1st Availability Zone
+        Value: !Ref DBPrivSubnet1
 
-    PrivateSubnet4: 
-        Description: A reference to the second private subnet in the 2nd Availability Zone
-        Value: !Ref PrivateSubnet4
+    DBPrivSubnet2: 
+        Description: A reference to the Database private subnet in the 2nd Availability Zone
+        Value: !Ref DBPrivSubnet2
+
+    NatGateway1EIP:
+        Description: A reference to the NAT Elastic IP address in the 1st Availability Zone
+        Value: !Ref NatGateway1EIP
+
+    NatGateway2EIP:
+        Description: A reference to the NAT Elastic IP address in the 1st Availability Zone
+        Value: !Ref NatGateway2EIP
+
