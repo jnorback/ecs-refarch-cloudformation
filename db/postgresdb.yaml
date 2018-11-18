@@ -13,10 +13,6 @@ Parameters:
         Type: String
         Default: db.t2.micro
 
-    DBSubnetGroupName: 
-        Description: The Subnet Group Name for the subnets this Multi-AZ AWS RDS belongs to.
-        Type: String
-
     DBSubnets:
         Description: "Subnets to launch RDS DBs into"
         Type: "List<AWS::EC2::Subnet::Id>"
@@ -68,4 +64,4 @@ Resources:
       Properties:
         DBSubnetGroupDescription: !Sub "${EnvironmentName} RDS DB subnet group"
         SubnetIds:
-          Ref: "DBSubnets"
+          - !Ref: "DBSubnets"
