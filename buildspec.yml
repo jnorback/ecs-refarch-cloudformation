@@ -5,7 +5,7 @@ env:
     # This S3 stores the ECS Reference Architecture CloudFormation templates
     # so that they can be deployed via a button on the project GitHub README
     #Modified for TechTestApp jnorback-open1
-    S3_BUCKET: "jnorback-open1/ecs-refarch-cloudformation"
+    S3_BUCKET="jnorback-open1/ecs-refarch-cloudformation"
 
 phases:
 
