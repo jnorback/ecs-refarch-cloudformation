@@ -8,6 +8,8 @@ Description: >
     It then deploys a highly available ECS cluster using an AutoScaling Group, with 
     ECS hosts distributed across multiple Availability Zones. 
 
+    It creates an AWS RDS PostgresSQL DB over two Avalability Zones.
+
     Finally, it deploys a pair of example ECS services from containers published in 
     Amazon EC2 Container Registry (Amazon ECR).
 

@@ -42,6 +42,7 @@ Resources:
         DBInstanceClass: db.t2.micro
         DBSubnetGroupName: DBPrivSubnets
         Engine: PostgreSQL
+        Iops: '1000'
         MasterUsername: MyName
         MasterUserPassword: MyPassword
         MultiAZ: 'true'
@@ -52,7 +53,6 @@ Resources:
         VPCSecurityGroups: 
         - !Ref DatabaseSecurityGroup
         #EngineVersion: String
-        #Iops: Integer
         #LicenseModel: String
         #OptionGroupName: String
         #PreferredBackupWindow: String
