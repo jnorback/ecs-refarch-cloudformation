@@ -72,7 +72,7 @@ Resources:
                 MasterUsername: MyName
                 MasterUserPassword: MyPassword
                 DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
-                DBSubnetGroupName: !GetAtt VPC.Outputs.DBPrivSubnets
+                DBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
 
     ProductService:
         Type: AWS::CloudFormation::Stack
