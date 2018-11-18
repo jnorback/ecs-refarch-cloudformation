@@ -8,9 +8,29 @@ Parameters:
         Description: An environment name that will be prefixed to resource names
         Type: String
     
-    VPC:
-        Type: AWS::EC2::VPC::Id
-        Description: Choose which VPC the DB should be deployed to
+    DBInstanceClass:
+        Description: Which DB instance type should we use to build the AWS RDS?
+        Type: String
+        Default: db.m1.small
+
+    DBSubnetGroupName: 
+        Description: The Subnet Group Name for the subnets this Multi-AZ AWS RDS belongs to.
+        Type: String
+
+    DataBaseSecurityGroup:
+        Description: DataBase Security Group the DB should use.
+        Type: String
+
+    MasterUsername:
+        Description: Allows one to set the DB master user name for the DB elsewhere
+        Type: String
+        Default: MyName
+    
+    MasterUserPassword:
+        Description: Allows one to set the DB master user name password for the DB elsewhere
+        Type: String
+        Default: MyPassword
+    
 
 
 Resources:
@@ -20,6 +40,7 @@ Resources:
         AllocatedStorage: '5'
         BackupRetentionPeriod: '5'
         DBInstanceClass: db.m1.small
+        DBSubnetGroupName: DBPrivSubnets
         Engine: PostgreSQL
         MasterUsername: MyName
         MasterUserPassword: MyPassword
@@ -30,11 +51,9 @@ Resources:
                   Value: !Sub ${EnvironmentName}-Postgres-DB
         VPCSecurityGroups: 
         - !Ref DatabaseSecurityGroup
-        #DBSubnetGroupName: String
         #EngineVersion: String
         #Iops: Integer
         #LicenseModel: String
-        #MultiAZ: Boolean
         #OptionGroupName: String
         #PreferredBackupWindow: String
         #PreferredMaintenanceWindow: String

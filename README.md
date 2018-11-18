@@ -60,6 +60,7 @@ The templates below are included in this repository and reference architecture:
 | [infrastructure/lifecyclehook.yaml](infrastructure/lifecyclehook.yaml) | This template deploys a Lambda Function and Auto Scaling Lifecycle Hook to drain Tasks from your Container Instances when an Instance is selected for Termination in your Auto Scaling Group.
 | [services/product-service/service.yaml](services/product-service/service.yaml) | This is an example of a long-running ECS service that serves a JSON API of products. For the full source for the service, see [services/product-service/src](services/product-service/src). THIS NEEDS TO BE ADJUSTED.|
 | [services/website-service/service.yaml](services/website-service/service.yaml) | This is an example of a long-running ECS service that needs to connect to another service (product-service) via the load-balanced URL. We use an environment variable to pass the product-service URL to the containers. For the full source for this service, see [services/website-service/src](services/website-service/src). THIS NEEDS TO BE ADJUSTED.|
+| [db/postgresdb.yaml](db/postgresdb.yaml) | This template deploys a AWS RDS (Postgres) DB in a Multi-AZ setup.
 
 After the CloudFormation templates have been deployed, the [stack outputs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) contain a link to the load-balanced URLs for each of the deployed microservices THIS NEEDS TO BE ADJUSTED..
 
