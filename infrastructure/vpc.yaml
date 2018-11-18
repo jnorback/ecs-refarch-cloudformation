@@ -38,12 +38,12 @@ Parameters:
     DBPrivSubnet1CIDR:
         Description: Please enter the IP range (CIDR notation) for the Database private subnet in the first Availability Zone
         Type: String
-        Default: 10.192.22.0/24
+        Default: 10.192.30.0/24
 
     DBPrivSubnet2CIDR:
         Description: Please enter the IP range (CIDR notation) for the Database private subnet in the second Availability Zone
         Type: String
-        Default: 10.192.23.0/24
+        Default: 10.192.31.0/24
 
 Resources:
 
