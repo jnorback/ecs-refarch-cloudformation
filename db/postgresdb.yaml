@@ -17,7 +17,7 @@ Parameters:
         Description: The Subnet Group Name for the subnets this Multi-AZ AWS RDS belongs to.
         Type: String
 
-    DataBaseSecurityGroup:
+    DatabaseSecurityGroup:
         Description: DataBase Security Group the DB should use.
         Type: String
 
