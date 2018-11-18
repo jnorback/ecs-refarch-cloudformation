@@ -63,5 +63,4 @@ Resources:
       Type: AWS::RDS::DBSubnetGroup
       Properties:
         DBSubnetGroupDescription: !Sub "${EnvironmentName} RDS DB subnet group"
-        SubnetIds:
-          - !Ref: DBSubnets
+        SubnetIds: !Ref: DBSubnets
