@@ -61,18 +61,18 @@ Resources:
                 VPC: !GetAtt VPC.Outputs.VPC
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
                 Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-
-    MyDB:
-        Type: AWS::CloudFormation::Stack
-        Properties:
-            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
-            Parameters:
-                DBInstanceClass: db.t2.micro
-                EnvironmentName: !Ref AWS::StackName
-                MasterUsername: MyName
-                MasterUserPassword: MyPassword
-                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
-                DBSubnetGroupName: !GetAtt VPC.Outputs.DBPrivSubnets
+#Temp coment out for problem determination
+    #MyDB:
+        #Type: AWS::CloudFormation::Stack
+        #Properties:
+            #TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
+            #Parameters:
+                #DBInstanceClass: db.t2.micro
+                #EnvironmentName: !Ref AWS::StackName
+                #MasterUsername: MyName
+                #MasterUserPassword: MyPassword
+                #DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
+                #DBSubnetGroupName: !GetAtt VPC.Outputs.DBPrivSubnets
 
     ProductService:
         Type: AWS::CloudFormation::Stack
