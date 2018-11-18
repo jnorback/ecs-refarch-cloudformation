@@ -69,7 +69,7 @@ Resources:
                 EnvironmentName: !Ref AWS::StackName
                 MasterUsername: MyName
                 MasterUserPassword: MyPassword
-                DataBaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DataBaseSecurityGroup
+                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
                 DBSubnetGroupName: !GetAtt VPC.Outputs.DBPrivSubnets
 
     ProductService:
