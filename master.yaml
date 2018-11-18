@@ -67,12 +67,12 @@ Resources:
         Properties:
             TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
             Parameters:
+                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
                 DBInstanceClass: db.t2.micro
+                DBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
                 EnvironmentName: !Ref AWS::StackName
                 MasterUsername: MyName
                 MasterUserPassword: MyPassword
-                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
-                DBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
 
     ProductService:
         Type: AWS::CloudFormation::Stack
