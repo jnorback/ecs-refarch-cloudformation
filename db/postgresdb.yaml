@@ -40,7 +40,7 @@ Resources:
         AllocatedStorage: '20'
         BackupRetentionPeriod: '5'
         DBInstanceClass: db.t2.micro
-        DBSubnetGroupName: !Ref DbSubnetGroup
+        DBSubnetGroupName: !Ref MyDBSubnetGroup
         Engine: PostgreSQL
         #Iops: '1000'
         MasterUsername: MyName
@@ -59,8 +59,12 @@ Resources:
         #PreferredBackupWindow: String
         #PreferredMaintenanceWindow: String
  
-    DbSubnetGroup:
+    MyDBSubnetGroup:
       Type: AWS::RDS::DBSubnetGroup
       Properties:
         DBSubnetGroupDescription: !Sub "${EnvironmentName} RDS DB subnet group"
         SubnetIds: !Ref: DBSubnets
+        Tags:
+            - Key: Name
+              Value: !Sub ${EnvironmentName} DbSubnetGroup
+    
