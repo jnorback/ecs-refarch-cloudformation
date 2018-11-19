@@ -13,7 +13,7 @@ Parameters:
         Type: String
         Default: db.t2.micro
 
-    DBSubnets:
+    MyDBSubnets:
         Description: "Subnets to launch RDS DBs into"
         Type: "List<AWS::EC2::Subnet::Id>"
 
@@ -63,7 +63,7 @@ Resources:
       Type: AWS::RDS::DBSubnetGroup
       Properties:
         DBSubnetGroupDescription: !Sub "${EnvironmentName} RDS DB subnet group"
-        SubnetIds: !Ref: DBSubnets
+        SubnetIds: !Ref: MyDBSubnets
         Tags:
             - Key: Name
               Value: !Sub ${EnvironmentName} DbSubnetGroup
