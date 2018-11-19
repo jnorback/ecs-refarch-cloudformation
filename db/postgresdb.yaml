@@ -52,7 +52,7 @@ Resources:
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-Postgres-DB
         VPCSecurityGroups: 
-        - !Ref DatabaseSecurityGroup
+            - !Ref DatabaseSecurityGroup
         #EngineVersion: String
         #LicenseModel: String
         #OptionGroupName: String
@@ -63,7 +63,8 @@ Resources:
       Type: AWS::RDS::DBSubnetGroup
       Properties:
         DBSubnetGroupDescription: !Sub "${EnvironmentName} RDS DB subnet group"
-        SubnetIds: !Ref MyDBSubnets
+        SubnetIds: 
+            - !Ref MyDBSubnets
         Tags:
             - Key: Name
               Value: !Sub ${EnvironmentName} DbSubnetGroup
