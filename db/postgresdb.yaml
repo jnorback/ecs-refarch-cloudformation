@@ -41,7 +41,7 @@ Resources:
         BackupRetentionPeriod: '5'
         DBInstanceClass: db.t2.micro
         DBSubnetGroupName: !Ref MyDBSubnetGroup
-        Engine: PostgreSQL
+        Engine: Postgres
         #Iops: '1000'
         MasterUsername: MyName
         MasterUserPassword: MyPassword
