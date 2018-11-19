@@ -68,3 +68,13 @@ Resources:
             - Key: Name
               Value: !Sub ${EnvironmentName} DbSubnetGroup
     
+
+Outputs:
+    InstanceID:
+      Description: "RDS Database Instance ID"
+      Value: !Ref MyDB
+
+    RdsDbURL:
+      Description: "RDS Database URL"
+      Value: !GetAtt "MyDB.Endpoint.Address"
+
