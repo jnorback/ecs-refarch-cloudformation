@@ -17,6 +17,7 @@ Parameters:
         Description: "Subnets to launch RDS DBs into"
         Type: "List<AWS::EC2::Subnet::Id>"
 
+    #We are only using one security group for this so no list
     DatabaseSecurityGroup:
         Description: DataBase Security Group the DB should use.
         Type: AWS::EC2::SecurityGroup::Id
