@@ -19,7 +19,7 @@ Parameters:
 
     DatabaseSecurityGroup:
         Description: DataBase Security Group the DB should use.
-        Type: String
+        Type: AWS::EC2::SecurityGroup::Id
 
     MasterUsername:
         Description: Allows one to set the DB master user name for the DB elsewhere
@@ -30,8 +30,6 @@ Parameters:
         Description: Allows one to set the DB master user name password for the DB elsewhere
         Type: String
         Default: MyPassword
-
-
 
 Resources:
     MyDB:

@@ -50,18 +50,6 @@ Resources:
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
-    ECS:
-        Type: AWS::CloudFormation::Stack
-        Properties:
-            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/ecs-cluster.yaml
-            Parameters:
-                EnvironmentName: !Ref AWS::StackName
-                InstanceType: t2.micro
-                ClusterSize: 4
-                VPC: !GetAtt VPC.Outputs.VPC
-                SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
-                Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-
     MyDB:
         Type: AWS::CloudFormation::Stack
         Properties:
@@ -73,6 +61,18 @@ Resources:
                 EnvironmentName: !Ref AWS::StackName
                 MasterUsername: MyName
                 MasterUserPassword: MyPassword
+
+    ECS:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/ecs-cluster.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                InstanceType: t2.micro
+                ClusterSize: 4
+                VPC: !GetAtt VPC.Outputs.VPC
+                SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+                Subnets: !GetAtt VPC.Outputs.PrivateSubnets
 
     ProductService:
         Type: AWS::CloudFormation::Stack
