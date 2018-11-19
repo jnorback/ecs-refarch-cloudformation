@@ -1,0 +1,59 @@
+#installl and configure golang
+sudo yum install -y golang
+
+# GOROOT is the location where Go package is installed on your system
+export GOROOT=/usr/lib/golang
+
+# GOPATH is the location of your work directory
+export GOPATH=$HOME/projects
+
+# PATH in order to access go binary system wide
+export PATH=$PATH:$GOROOT/bin
+
+
+Note: all above commands will set the environment variables for your current session only. To make it permanent add above commands in ‘~/.bash_profile’ file
+
+
+#dep is used for dependency management in golang, please download and install dep
+curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+Compiling the application locally
+
+Download the application using go get:
+
+go get -d github.com/vibrato/VibratoTechTest
+
+run build.sh to download all the dependencies and compile the application
+
+the dist folder contains the compiled web package
+Docker build using docker
+
+To build a docker image with the application installed on it
+
+docker build . -t techtestapp:latest
+
+
+
+"\"\n",
+                                "export INFORMATICA_SERVICES=\"2",
+                                "\"\n",
+                                "export JOIN_NODE_NAME=\"Informatica_NotApplicable_NodeName\" \n",
+                                "export DOMAIN_HOST_NAME=\"$HOSTNAME\" \n",
+                                "mkdir /home/ec2-user/Informatica/10.1.1/infa_shared",
+                                "\n",
+                                "echo \"export ORACLE_HOME=/home/oracle/product/11.2.0.4\" >> /root/.bashrc \n",
+                                "echo \"export LD_LIBRARY_PATH=/home/ec2-user/Informatica/10.1.1/server/bin:/home/ec2-user/Informatica/10.1.1",
+                                "/java/jre/lib/amd64/server::/home/oracle/product/11.2.0.4/lib:/home/oracle/product/11.2.0.4/lib:/bin:\" >> /root/.bashrc \n",
+                                "echo \"export TNS_ADMIN=/home/oracle/product/11.2.0.4/network/admin\" >> /root/.bashrc \n",
+                                "chmod -R 777 /home/ec2-user/Informatica/10.1.1/infa_shared",
+                                "\n",
+                                "echo \"running cfn init\" \n",
+"/opt/aws/bin/cfn-init --stack ",
+
+"echo \"export GOROOT=/usr/lib/golang\" >> /root/.bashrc \n"
+"echo \"export GOPATH=$HOME/projects\" >> /root/.bashrc \n"
+"echo \"export PATH=$PATH:$GOROOT/bin\" >> /root/.bashrc \n"
+source /root/.bashrc
+
+mkdir /root/projects /root/projects/bin
+
