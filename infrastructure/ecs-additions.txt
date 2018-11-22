@@ -57,3 +57,6 @@ source /root/.bashrc
 
 mkdir /root/projects /root/projects/bin
 
+curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest | grep "browser_download_url.*linux64" | cut -d '"' -f 4
+https://github.com/vibrato/TechTestApp/releases/download/v.0.3.4/TechTestApp_v.0.3.4_linux64.zip
+

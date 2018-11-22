@@ -30,6 +30,44 @@ Parameters:
         Description: Select the Security Group to use for the ECS cluster hosts
         Type: AWS::EC2::SecurityGroup::Id
 
+    #Start DB settings
+    MasterUsername:
+        Description: Allows one to set the DB master user name for the DB elsewhere
+        Type: String
+        Default: MyName
+
+    MasterUserPassword:
+        Description: Allows one to set the DB master user name password for the DB elsewhere
+        Type: String
+        Default: MyPassword
+
+    DbName:
+        Description: name of the database to use on the database server
+        Type: String
+        Default: app
+
+    DbPort:
+        Description: port to connect to the database server on
+        Type: String
+        Default: 5432
+
+    DbHost:
+        Description: host to connect to, ip or dns entry
+        Type: String
+        Default: localhost
+
+    ListenHost:
+        Description: listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on
+        Type: String
+        Default: localhost
+
+    ListenPort:
+        Description: port to bind on the local server
+        Type: String
+        Default: 3000
+
+    #End DB settings
+
 Mappings:
 
     # These are the latest ECS optimized AMIs as of Feb 2018:
@@ -123,6 +161,25 @@ Resources:
                     #!/bin/bash
                     yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
                     yum install -y aws-cfn-bootstrap hibagent
+                    #################### Modifications for TechTestLab
+                    #
+                    #Not that much error control here
+                    yum update -y
+                    #Installation of golang
+                    mkdir -p /root/projects/bin
+                    "echo \"export GOROOT=/usr/lib/golang\" >> /root/.bashrc \n"
+                    "echo \"export GOPATH=$HOME/projects\" >> /root/.bashrc \n"
+                    "echo \"export DEPPATH=$HOME/projects/bin\" >> /root/.bashrc \n"
+                    "echo \"export PATH=$PATH:$GOROOT/bin:$DEPPATH\" >> /root/.bashrc \n"
+                    export GOROOT=/usr/lib/golang
+                    export GOPATH=$HOME/projects
+                    export PATH=$PATH:$GOROOT/bin:$DEPPATH
+                    sudo yum install -y golang
+                    #Installation of dep
+                    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                    #Prereq and installation of the TechTestLab
+                    #
+                    #################### End Modifications for TechTestLab
                     /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
                     /usr/bin/enable-ec2-spot-hibernation

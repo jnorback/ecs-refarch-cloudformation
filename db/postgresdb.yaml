@@ -22,15 +22,40 @@ Parameters:
         Description: DataBase Security Group the DB should use.
         Type: AWS::EC2::SecurityGroup::Id
 
-    MasterUsername:
-        Description: Allows one to set the DB master user name for the DB elsewhere
+    DBMasterUsername:
+        Description: the user used to connect to the database server
         Type: String
-        Default: MyName
+        Default: postgres
 
-    MasterUserPassword:
-        Description: Allows one to set the DB master user name password for the DB elsewhere
+    DBMasterUserPassword:
+        Description: the password used to connect to the database server
         Type: String
-        Default: MyPassword
+        Default: changeme
+
+    DBName:
+        Description: name of the database to use on the database server
+        Type: String
+        Default: app
+
+    DBPort:
+        Description: port to connect to the database server on
+        Type: String
+        Default: 5432
+
+    DbHost:
+        Description: host to connect to, ip or dns entry
+        Type: String
+        Default: localhost
+
+    ListenHost:
+        Description: listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on
+        Type: String
+        Default: localhost
+
+    ListenPort:
+        Description: port to bind on the local server
+        Type: String
+        Default: 3000
 
 Resources:
     MyDB:
@@ -42,10 +67,10 @@ Resources:
         DBSubnetGroupName: !Ref MyDBSubnetGroup
         Engine: Postgres
         #Iops: '1000'
-        MasterUsername: MyName
-        MasterUserPassword: MyPassword
+        MasterUsername: !Ref DBMasterUsername
+        MasterUserPassword: !Ref DBMasterUserPassword
         MultiAZ: 'true'
-        Port:  '5432'
+        Port:  !Ref DbPort
         StorageType: 'gp2'
         Tags:
                 - Key: Name
@@ -76,4 +101,32 @@ Outputs:
       Description: "RDS Database URL"
       Value: !GetAtt "MyDB.Endpoint.Address"
 
+    VTT_DBUSER:
+      Description: "the user used to connect to the database server"
+      Value: !Ref DBMasterUsername
+
+    VTT_DBPASSWORD:
+      Description: "the password used to connect to the database server"
+      Value: !Ref DBMasterUserPassword
+
+    VTT_DBNAME:
+      Description: "name of the database to use on the database server"
+      Value: !Ref DBName
+
+    VTT_DBPORT:
+      Description: "port to connect to the database server on"
+      Value:  !GetAtt "MyDB.Endpoint.Port"
+
+    VTT_DBHOST:
+      Description: "host to connect to, ip or dns entry"
+      Value: !GetAtt "MyDB.Endpoint.Address"
+      #VTT_DBHOST=localhost
+
+    VTT_LISTENHOST:
+      Description: "listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on"
+      Value: 0.0.0.0
+
+    VTT_LISTENPORT:
+      Description: "port to bind on the local server"
+      DBPORTValue: 3000
 
