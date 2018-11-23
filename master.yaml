@@ -17,34 +17,49 @@ Description: >
     Last Modified: 21nd November 2018
     Author: Paul Maddox <pmaddox@amazon.com>, Jan Norback TechTestApp
 
+#Input Parameters to collect upon start
 Metadata:
-  'AWS::CloudFormation::Interface':
-    ParameterGroups:
-    - Label:
-        default: 'RDS Parameters'
-      Parameters:
-      - DBName
-      - DBMasterUsername
-      - DBMasterUserPassword
-Parameters:
+  AWS::CloudFormation::Interface:
+      ParameterGroups:
+        - Label:
+            default: 'RDS Parameters'
+          Parameters:
+           - DBNameParam
+           - DBMasterUsernameParam
+           - DBMasterUserPasswordParam
+           - DBPortParam
 
-  DBName:
-    Description: 'Name of the database.'
-    Type: String
-    MinLength: "1"
-    MaxLength: "8"
-    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
-    ConstraintDescription: "must begin with a letter and contain only alphanumeric characters."
-    Default: 'app'
-  DBMasterUsername:
-    Description: 'The master user name for the DB instance.'
-    Type: String
-    Default: postgres
-  DBMasterUserPassword:
-    Description: 'The master password for the DB instance.'
-    Type: String
-    NoEcho: true
-    Default: 'changeme'
+Parameters:
+    DBNameParam:
+        Description: 'Name of the database.'
+        Type: String
+        MinLength: "1"
+        MaxLength: "8"
+        AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+        ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+        Default: 'app'
+
+    DBMasterUsernameParam:
+        Description: 'The master user name for the DB instance.'
+        Type: String
+        Default: postgres
+
+    DBPortParam:
+        Description: Port to connect to the database server on
+        Type: String
+        Default: 5432
+
+    DBMasterUserPasswordParam:
+        Description: 'The master password for the DB instance.'
+        Type: String
+        MinLength: "8"
+        MaxLength: "10"
+        AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+        ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+        NoEcho: true
+        Default: 'changeme'
+
+ #End Input Parameters to collect upon start
 
 Resources:
 
@@ -54,11 +69,15 @@ Resources:
             TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/vpc.yaml
             Parameters:
                 EnvironmentName:    !Ref AWS::StackName
+                #Subnet CIDRs could be adjusted here if needed
                 VpcCIDR:            10.192.0.0/16
+                #Public is for loadbalancer and potential Bastion Host
                 PublicSubnet1CIDR:  10.192.10.0/24
                 PublicSubnet2CIDR:  10.192.11.0/24
+                #Private is for ECS/EC2 instances
                 PrivateSubnet1CIDR: 10.192.20.0/24
                 PrivateSubnet2CIDR: 10.192.21.0/24
+                #The DB private subnet is completely separated
                 DBPrivSubnet1CIDR:  10.192.30.0/24
                 DBPrivSubnet2CIDR:  10.192.31.0/24
 
@@ -80,16 +99,19 @@ Resources:
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
-#    MyDB:
-#        Type: AWS::CloudFormation::Stack
-#        Properties:
-#            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
-#            Parameters:
-#                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
-#                DBInstanceClass: db.t2.micro
-#                MyDBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
-#                EnvironmentName: !Ref AWS::StackName
-#
+    MyDB:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
+            Parameters:
+                DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
+                DBInstanceClass: db.t2.micro
+                MyDBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
+                EnvironmentName: !Ref AWS::StackName
+                DBMasterUsername: !Ref DBMasterUsernameParam
+                DBMasterUserPassword: !Ref DBMasterUserPasswordParam
+                DBPort: !Ref DBPortParam
+
 #    ECS:
 #        Type: AWS::CloudFormation::Stack
 #        Properties:
@@ -101,13 +123,9 @@ Resources:
 #                VPC: !GetAtt VPC.Outputs.VPC
 #                SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
 #                Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-#                VTT_DBUSER: !GetAtt MyDB.Outputs.VTT_DBUSER
-#                VTT_DBPASSWORD: !GetAtt MyDB.Outputs.VTT_DBPASSWORD
-#                VTT_DBNAME: !GetAtt MyDB.Outputs.VTT_DBNAME
-#                VTT_DBPORT: !GetAtt MyDB.Outputs.VTT_DDBPORT
-#                VTT_DBHOST: !GetAtt MyDB.Outputs.VTT_DBHOST
-#                VTT_LISTENHOST: !GetAtt MyDB.Outputs.VTT_LISTENHOST
-#                VTT_LISTENPORT: !GetAtt MyDB.Outputs.VTT_LISTENPORT
+#                VTTDBHOST: !GetAtt MyDB.Outputs.VTTDBHOST
+#                VTTLISTENHOST: !GetAtt MyDB.Outputs.VTTLISTENHOST
+#                VTTLISTENPORT: !GetAtt MyDB.Outputs.VTTLISTENPORT
 #
 #    ProductService:
 #        Type: AWS::CloudFormation::Stack

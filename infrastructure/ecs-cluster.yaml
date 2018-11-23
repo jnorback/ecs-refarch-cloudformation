@@ -31,37 +31,37 @@ Parameters:
         Type: AWS::EC2::SecurityGroup::Id
 
     #Start DB settings
-    MasterUsername:
+    DBMasterUsername:
         Description: Allows one to set the DB master user name for the DB elsewhere
         Type: String
         Default: MyName
 
-    MasterUserPassword:
+    DBMasterUserPassword:
         Description: Allows one to set the DB master user name password for the DB elsewhere
         Type: String
         Default: MyPassword
 
-    DbName:
+    DBName:
         Description: name of the database to use on the database server
         Type: String
         Default: app
 
-    DbPort:
+    DBPort:
         Description: port to connect to the database server on
         Type: String
         Default: 5432
 
-    DbHost:
+    VTTDBHOST:
         Description: host to connect to, ip or dns entry
         Type: String
         Default: localhost
 
-    ListenHost:
+    VTTLISTENHOST:
         Description: listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on
         Type: String
         Default: localhost
 
-    ListenPort:
+    VTTLISTENPORT:
         Description: port to bind on the local server
         Type: String
         Default: 3000
@@ -161,117 +161,139 @@ Resources:
                     #!/bin/bash
                     yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
                     yum install -y aws-cfn-bootstrap hibagent
-                    #################### Modifications for TechTestLab
-                    #
-                    #Not that much error control here
                     yum update -y
-                    #Installation of golang
-                    mkdir -p /root/projects/bin
-                    "echo \"export GOROOT=/usr/lib/golang\" >> /root/.bashrc \n"
-                    "echo \"export GOPATH=$HOME/projects\" >> /root/.bashrc \n"
-                    "echo \"export DEPPATH=$HOME/projects/bin\" >> /root/.bashrc \n"
-                    "echo \"export PATH=$PATH:$GOROOT/bin:$DEPPATH\" >> /root/.bashrc \n"
-                    export GOROOT=/usr/lib/golang
-                    export GOPATH=$HOME/projects
-                    export PATH=$PATH:$GOROOT/bin:$DEPPATH
-                    sudo yum install -y golang
-                    #Installation of dep
-                    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                    #Prereq and installation of the TechTestLab
-                    #
-                    #################### End Modifications for TechTestLab
                     /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
                     /usr/bin/enable-ec2-spot-hibernation
 
         Metadata:
             AWS::CloudFormation::Init:
+            #The cfn-init helper script processes these configuration sections in the following order: 
+            # packages, groups, users, sources, files, commands, and then services.
+            #If you require a different order, separate your sections into different config keys, 
+            # and then use a configset that specifies the order in which the config keys should be processed. 
                 config:
-                    packages:
-                        yum:
-                            awslogs: []
+                    configSets:
+                        MyconfigSets:
+                          - ecsstartup
+                          - vibratoextra
+                    ############ start of ecsstartup
+                    ecsstartup:
+                      packages:
+                          yum:
+                              awslogs: []
+                     groups:
+                          vibrato: {}
+                      users:
+                          vibrato:
+                            groups: 
+                              - "vibrato"
+                      commands:
+                          01_add_instance_to_cluster:
+                              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+                      files:
+                          "/etc/cfn/cfn-hup.conf":
+                              mode: 000400
+                              owner: root
+                              group: root
+                              content: !Sub |
+                                  [main]
+                                  stack=${AWS::StackId}
+                                  region=${AWS::Region}
 
-                    commands:
-                        01_add_instance_to_cluster:
-                            command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
-                    files:
-                        "/etc/cfn/cfn-hup.conf":
-                            mode: 000400
-                            owner: root
-                            group: root
-                            content: !Sub |
-                                [main]
-                                stack=${AWS::StackId}
-                                region=${AWS::Region}
+                          "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+                              content: !Sub |
+                                  [cfn-auto-reloader-hook]
+                                  triggers=post.update
+                                  path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
+                                  action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
 
-                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
-                            content: !Sub |
-                                [cfn-auto-reloader-hook]
-                                triggers=post.update
-                                path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
-                                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+                          "/etc/awslogs/awscli.conf":
+                              content: !Sub |
+                                  [plugins]
+                                  cwlogs = cwlogs
+                                  [default]
+                                  region = ${AWS::Region}
 
-                        "/etc/awslogs/awscli.conf":
-                            content: !Sub |
-                                [plugins]
-                                cwlogs = cwlogs
-                                [default]
-                                region = ${AWS::Region}
+                          "/etc/awslogs/awslogs.conf":
+                              content: !Sub |
+                                  [general]
+                                  state_file = /var/lib/awslogs/agent-state
 
-                        "/etc/awslogs/awslogs.conf":
-                            content: !Sub |
-                                [general]
-                                state_file = /var/lib/awslogs/agent-state
+                                  [/var/log/dmesg]
+                                  file = /var/log/dmesg
+                                  log_group_name = ${ECSCluster}-/var/log/dmesg
+                                  log_stream_name = ${ECSCluster}
 
-                                [/var/log/dmesg]
-                                file = /var/log/dmesg
-                                log_group_name = ${ECSCluster}-/var/log/dmesg
-                                log_stream_name = ${ECSCluster}
+                                  [/var/log/messages]
+                                  file = /var/log/messages
+                                  log_group_name = ${ECSCluster}-/var/log/messages
+                                  log_stream_name = ${ECSCluster}
+                                  datetime_format = %b %d %H:%M:%S
 
-                                [/var/log/messages]
-                                file = /var/log/messages
-                                log_group_name = ${ECSCluster}-/var/log/messages
-                                log_stream_name = ${ECSCluster}
-                                datetime_format = %b %d %H:%M:%S
+                                  [/var/log/docker]
+                                  file = /var/log/docker
+                                  log_group_name = ${ECSCluster}-/var/log/docker
+                                  log_stream_name = ${ECSCluster}
+                                  datetime_format = %Y-%m-%dT%H:%M:%S.%f
 
-                                [/var/log/docker]
-                                file = /var/log/docker
-                                log_group_name = ${ECSCluster}-/var/log/docker
-                                log_stream_name = ${ECSCluster}
-                                datetime_format = %Y-%m-%dT%H:%M:%S.%f
+                                  [/var/log/ecs/ecs-init.log]
+                                  file = /var/log/ecs/ecs-init.log.*
+                                  log_group_name = ${ECSCluster}-/var/log/ecs/ecs-init.log
+                                  log_stream_name = ${ECSCluster}
+                                  datetime_format = %Y-%m-%dT%H:%M:%SZ
 
-                                [/var/log/ecs/ecs-init.log]
-                                file = /var/log/ecs/ecs-init.log.*
-                                log_group_name = ${ECSCluster}-/var/log/ecs/ecs-init.log
-                                log_stream_name = ${ECSCluster}
-                                datetime_format = %Y-%m-%dT%H:%M:%SZ
+                                  [/var/log/ecs/ecs-agent.log]
+                                  file = /var/log/ecs/ecs-agent.log.*
+                                  log_group_name = ${ECSCluster}-/var/log/ecs/ecs-agent.log
+                                  log_stream_name = ${ECSCluster}
+                                  datetime_format = %Y-%m-%dT%H:%M:%SZ
 
-                                [/var/log/ecs/ecs-agent.log]
-                                file = /var/log/ecs/ecs-agent.log.*
-                                log_group_name = ${ECSCluster}-/var/log/ecs/ecs-agent.log
-                                log_stream_name = ${ECSCluster}
-                                datetime_format = %Y-%m-%dT%H:%M:%SZ
+                                  [/var/log/ecs/audit.log]
+                                  file = /var/log/ecs/audit.log.*
+                                  log_group_name = ${ECSCluster}-/var/log/ecs/audit.log
+                                  log_stream_name = ${ECSCluster}
+                                  datetime_format = %Y-%m-%dT%H:%M:%SZ
+                          
+                          "/home/vibrato/appinstallation.sh":
+                              mode: 000700
+                              owner: vibrato
+                              group: vibrato
+                              content: !Sub |
+                                  #!/bin/bash
+                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest \
+                                    | grep "browser_download_url" \
+                                    | grep linux64 \
+                                    | cut -d '"' -f 4 \
+                                    | wget -qi -
 
-                                [/var/log/ecs/audit.log]
-                                file = /var/log/ecs/audit.log.*
-                                log_group_name = ${ECSCluster}-/var/log/ecs/audit.log
-                                log_stream_name = ${ECSCluster}
-                                datetime_format = %Y-%m-%dT%H:%M:%SZ
+                      services:
+                          sysvinit:
+                              cfn-hup:
+                                  enabled: true
+                                  ensureRunning: true
+                                  files:
+                                      - /etc/cfn/cfn-hup.conf
+                                      - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+                              awslogs:
+                                  enabled: true
+                                  ensureRunning: true
+                                  files:
+                                      - /etc/awslogs/awslogs.conf
+                                      - /etc/awslogs/awscli.conf
+                    ############ end of ecsstartup 
 
-                    services:
-                        sysvinit:
-                            cfn-hup:
-                                enabled: true
-                                ensureRunning: true
-                                files:
-                                    - /etc/cfn/cfn-hup.conf
-                                    - /etc/cfn/hooks.d/cfn-auto-reloader.conf
-                            awslogs:
-                                enabled: true
-                                ensureRunning: true
-                                files:
-                                    - /etc/awslogs/awslogs.conf
-                                    - /etc/awslogs/awscli.conf
+                    ############ start of vibratoextra                  
+                    vibratoextra:
+                      groups:
+                          vibrato: {}
+                      users:
+                          vibrato:
+                            groups: 
+                              - "vibrato"
+                     ############ end of vibratoextra 
+
+
 
     # This IAM Role is attached to all of the ECS hosts. It is based on the default role
     # published here:
