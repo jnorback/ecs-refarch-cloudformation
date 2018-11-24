@@ -51,17 +51,17 @@ Parameters:
         Type: String
         Default: 5432
 
-    VTTDBHOST:
+    DBHost:
         Description: host to connect to, ip or dns entry
         Type: String
         Default: localhost
 
-    VTTLISTENHOST:
+    ListenHost:
         Description: listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on
         Type: String
         Default: localhost
 
-    VTTLISTENPORT:
+    ListenPort:
         Description: port to bind on the local server
         Type: String
         Default: 3000
@@ -176,18 +176,14 @@ Resources:
                     configSets:
                         MyconfigSets:
                           - ecsstartup
-                          - vibratoextra
+                          - vibrato1
+                          - vibrato2
                     ############ start of ecsstartup
                     ecsstartup:
                       packages:
                           yum:
                               awslogs: []
-                     groups:
-                          vibrato: {}
-                      users:
-                          vibrato:
-                            groups: 
-                              - "vibrato"
+ 
                       commands:
                           01_add_instance_to_cluster:
                               command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
@@ -254,18 +250,6 @@ Resources:
                                   log_group_name = ${ECSCluster}-/var/log/ecs/audit.log
                                   log_stream_name = ${ECSCluster}
                                   datetime_format = %Y-%m-%dT%H:%M:%SZ
-                          
-                          "/home/vibrato/appinstallation.sh":
-                              mode: 000700
-                              owner: vibrato
-                              group: vibrato
-                              content: !Sub |
-                                  #!/bin/bash
-                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest \
-                                    | grep "browser_download_url" \
-                                    | grep linux64 \
-                                    | cut -d '"' -f 4 \
-                                    | wget -qi -
 
                       services:
                           sysvinit:
@@ -283,15 +267,46 @@ Resources:
                                       - /etc/awslogs/awscli.conf
                     ############ end of ecsstartup 
 
-                    ############ start of vibratoextra                  
-                    vibratoextra:
+                    ############ start of vibrato1                  
+                    vibrato1:
                       groups:
                           vibrato: {}
                       users:
                           vibrato:
                             groups: 
                               - "vibrato"
-                     ############ end of vibratoextra 
+                      files:  
+                          "/home/vibrato/appinstallation.sh":
+                          #To be run later to download the TechTestApp
+                              mode: 000700
+                              owner: vibrato
+                              group: vibrato
+                              content: !Sub |
+                                  #!/bin/bash -ex
+                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest \
+                                    | grep "browser_download_url" \
+                                    | grep linux64 \
+                                    | cut -d '"' -f 4 \
+                                    | wget -qi -
+
+                          "/home/vibrato/appenv":
+                          #To be added later to the /home/vibrato/.bashrc file for the TechTestApp
+                              mode: 000700
+                              owner: vibrato
+                              group: vibrato
+                              content: !Sub |
+                                  VTT_DBUSER=${DBMasterUsername}
+                                  VTT_DBPASSWORD=${DBMasterUserPassword}
+                                  VTT_DBNAME=${DBName}
+                                  VTT_DBPORT=${DBPort}
+                                  VTT_DBHOST=${DBHost}
+                                  VTT_LISTENHOST=${ListenHost}
+
+                    ############ end of vibrato1 
+                    
+                    ############ start of vibrato2                  
+                    vibrato2:
+                    ############ end of vibrato2 
 
 
 

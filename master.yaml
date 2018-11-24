@@ -123,9 +123,13 @@ Resources:
 #                VPC: !GetAtt VPC.Outputs.VPC
 #                SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
 #                Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-#                VTTDBHOST: !GetAtt MyDB.Outputs.VTTDBHOST
-#                VTTLISTENHOST: !GetAtt MyDB.Outputs.VTTLISTENHOST
-#                VTTLISTENPORT: !GetAtt MyDB.Outputs.VTTLISTENPORT
+#                DBHost: !GetAtt MyDB.Outputs.VTTDBHOST
+#                ListenHost: !GetAtt MyDB.Outputs.VTTLISTENHOST
+#                ListenPort: !GetAtt MyDB.Outputs.VTTLISTENPORT
+#                DBMasterUsername: !Ref DBMasterUsernameParam
+#                DBMasterUserPassword: !Ref DBMasterUserPasswordParam
+#                DBPort: !Ref DBPortParam
+#                DBName: !Ref DBNameParam
 #
 #    ProductService:
 #        Type: AWS::CloudFormation::Stack
