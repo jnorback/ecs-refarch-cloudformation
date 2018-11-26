@@ -4,6 +4,16 @@ Description: >
 
 Parameters:
 
+    EC2keypair:
+        Description: Provides the name of the EC2 key pair
+        Type: String
+        Default: NothingAtAll
+
+    EnvType: 
+        Description: Environment type.
+        Default: test
+        Type: String
+    
     EnvironmentName:
         Description: An environment name that will be prefixed to resource names
         Type: String
@@ -156,13 +166,14 @@ Resources:
             SecurityGroups:
                 - !Ref SecurityGroup
             IamInstanceProfile: !Ref ECSInstanceProfile
+            KeyName: !Ref EC2keypair
             UserData:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+                    yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
                     yum install -y aws-cfn-bootstrap hibagent
-                    yum update -y
-                    /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+                    /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration --configsets MyconfigSets
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
                     /usr/bin/enable-ec2-spot-hibernation
 
@@ -172,21 +183,25 @@ Resources:
             # packages, groups, users, sources, files, commands, and then services.
             #If you require a different order, separate your sections into different config keys, 
             # and then use a configset that specifies the order in which the config keys should be processed. 
-                config:
+                #config:
                     configSets:
                         MyconfigSets:
                           - ecsstartup
                           - vibrato1
                           - vibrato2
+
                     ############ start of ecsstartup
                     ecsstartup:
                       packages:
                           yum:
                               awslogs: []
- 
+                               
                       commands:
                           01_add_instance_to_cluster:
                               command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+                          10_add_vibrato_user:
+                              command: /usr/sbin/useradd vibrato
+
                       files:
                           "/etc/cfn/cfn-hup.conf":
                               mode: 000400
@@ -269,43 +284,47 @@ Resources:
 
                     ############ start of vibrato1                  
                     vibrato1:
-                      groups:
-                          vibrato: {}
-                      users:
-                          vibrato:
-                            groups: 
-                              - "vibrato"
-                      files:  
+                       packages:
+                             yum:
+                                  wget: []                    
+                                  unzip: []
+
+                       files:  
                           "/home/vibrato/appinstallation.sh":
                           #To be run later to download the TechTestApp
-                              mode: 000700
+                              mode: "000700"
                               owner: vibrato
                               group: vibrato
                               content: !Sub |
                                   #!/bin/bash -ex
-                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest \
-                                    | grep "browser_download_url" \
-                                    | grep linux64 \
-                                    | cut -d '"' -f 4 \
-                                    | wget -qi -
+                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest | grep "browser_download_url" | grep linux64 | cut -d '"' -f 4 | wget -qi -
 
                           "/home/vibrato/appenv":
                           #To be added later to the /home/vibrato/.bashrc file for the TechTestApp
-                              mode: 000700
+                              mode: "000700"
                               owner: vibrato
                               group: vibrato
                               content: !Sub |
-                                  VTT_DBUSER=${DBMasterUsername}
-                                  VTT_DBPASSWORD=${DBMasterUserPassword}
-                                  VTT_DBNAME=${DBName}
-                                  VTT_DBPORT=${DBPort}
-                                  VTT_DBHOST=${DBHost}
-                                  VTT_LISTENHOST=${ListenHost}
+                                  export VTT_DBUSER=${DBMasterUsername}
+                                  export VTT_DBPASSWORD=${DBMasterUserPassword}
+                                  export VTT_DBNAME=${DBName}
+                                  export VTT_DBPORT=${DBPort}
+                                  export VTT_DBHOST=${DBHost}
+                                  export VTT_LISTENHOST=${ListenHost}
 
                     ############ end of vibrato1 
                     
                     ############ start of vibrato2                  
                     vibrato2:
+                      commands:
+                          01_download_TechTestApp:
+                              command: "/home/vibrato/appinstallation.sh > /home/vibrato/appinstallation.out 2>&1"
+                              cwd : "/home/vibrato"
+                          03_download_TechTestApp:
+                              command: "unzip TechTestApp* >> /home/vibrato/appinstallation.out 2>&1"
+                              cwd : "/home/vibrato"
+                               
+
                     ############ end of vibrato2 
 
 
