@@ -37,6 +37,7 @@ The span-up for the TechTestLAb infrastructure consists of a set of nested templ
  - Centralized container logging with Amazon CloudWatch Logs.  THIS NEEDS TO BE ADJUSTED.
  - A [Lambda Function](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) and [Auto Scaling Lifecycle Hook](https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html) to [drain Tasks from your Container Instances](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-draining.html) when an Instance is selected for Termination in your Auto Scaling Group.  THIS NEEDS TO BE ADJUSTED.
  - A Highly Available AWS RDS (Postgres) DB spanning 2 Availability Zones (active + hot standby).
+ - An EC2 instance in the first AZ used purely to initiate the DataBase on start of the stack
 
 #### Infrastructure: Communication Traffic Flow
 ![infrastructure-communication-traffic-flow](images/infrastructure-communication-traffic-flow.png)

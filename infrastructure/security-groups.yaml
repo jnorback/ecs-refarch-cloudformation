@@ -58,7 +58,7 @@ Resources:
     # This security group is purely for testing
     # By default, we've opened this up to the public internet (0.0.0.0/0) but can you restrict
     # it further if you want.
-    # Restricted to only allow SSH, HTTP and HTTPS
+    # Restricted to only allow Postgres 5432, SSH, HTTP and HTTPS
     TestingSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties: 
@@ -80,6 +80,12 @@ Resources:
                   FromPort: '22'
                   ToPort:   '22'
                   IpProtocol: tcp  
+                # Allow inbound access to DB on port 5432
+                - CidrIp: 0.0.0.0/0
+                  FromPort: '5432'
+                  ToPort:   '5432'
+                  IpProtocol: tcp
+ 
             Tags: 
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-Testing

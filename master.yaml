@@ -125,54 +125,84 @@ Resources:
                 #SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
                 SecurityGroup: !If [CreateProdResources, !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup, !GetAtt SecurityGroups.Outputs.TestingSecurityGroup] 
 
-#    MyDB:
-#        Type: AWS::CloudFormation::Stack
-#        Properties:
-#            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
-#            Parameters:
-#                #For test setup put the ECS in the Public subnet and the special public security group
-#                #
-#                DatabaseSecurityGroup: !If [CreateProdResources, !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup, !GetAtt SecurityGroups.Outputs.TestingSecurityGroup] 
-#                #SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
-#                MyDBSubnets: !If [CreateProdResources, !GetAtt VPC.Outputs.DBPrivateSubnets, !GetAtt VPC.Outputs.PublicSubnets]
-#                #
-#                #DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
-#                DBInstanceClass: db.t2.micro
-#                #MyDBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
-#                EnvironmentName: !Ref AWS::StackName
-#                DBMasterUsername: !Ref DBMasterUsernameParam
-#                DBMasterUserPassword: !Ref DBMasterUserPasswordParam
-#                DBPort: !Ref DBPortParam
-
-    ECS:
+    MyDB:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/ecs-cluster.yaml
+            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/db/postgresdb.yaml
+            Parameters:
+                #For test setup put the ECS in the Public subnet and the special public security group
+                #
+                DatabaseSecurityGroup: !If [CreateProdResources, !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup, !GetAtt SecurityGroups.Outputs.TestingSecurityGroup] 
+                #SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+                MyDBSubnets: !If [CreateProdResources, !GetAtt VPC.Outputs.DBPrivateSubnets, !GetAtt VPC.Outputs.PublicSubnets]
+                #
+                #DatabaseSecurityGroup: !GetAtt SecurityGroups.Outputs.DatabaseSecurityGroup
+                DBInstanceClass: db.t2.micro
+                #MyDBSubnets: !GetAtt VPC.Outputs.DBPrivSubnets
+                EnvironmentName: !Ref AWS::StackName
+                DBMasterUsername: !Ref DBMasterUsernameParam
+                DBMasterUserPassword: !Ref DBMasterUserPasswordParam
+                DBPort: !Ref DBPortParam
+
+    EC2DBInit:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/ec2-instance-dbinit.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: t2.micro
-                ClusterSize: 4
                 VPC: !GetAtt VPC.Outputs.VPC
                 EnvType: !Ref EnvTypeParam
                 #
-                #For test setup put the ECS in the Public subnet and the special public security group
+                #For test setup put the EC2 in the Public subnet and the special public security group
                 #
                 SecurityGroup: !If [CreateProdResources, !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup, !GetAtt SecurityGroups.Outputs.TestingSecurityGroup] 
-                Subnets: !If [CreateProdResources, !GetAtt VPC.Outputs.PrivateSubnets, !GetAtt VPC.Outputs.PublicSubnets]
+                EC2SubnetId: !If [CreateProdResources, !GetAtt VPC.Outputs.PrivateSubnet1, !GetAtt VPC.Outputs.PublicSubnet1]  
+                #Subnets: !If [CreateProdResources, !GetAtt VPC.Outputs.PrivateSubnets, !GetAtt VPC.Outputs.PublicSubnets]
                 #
                 #Added test temporary as an alternative to work on ECS without the DB
                 #DBHost: !GetAtt MyDB.Outputs.VTTDBHOST
                 #ListenHost: !GetAtt MyDB.Outputs.VTTLISTENHOST
                 #ListenPort: !GetAtt MyDB.Outputs.VTTLISTENPORT
-                DBHost: localhost
-                ListenHost: localhost
-                ListenPort: 3000                
+                DBHost: !GetAtt MyDB.Outputs.VTTDBHOST
+                ListenHost: !GetAtt MyDB.Outputs.VTTLISTENHOST
+                ListenPort: !GetAtt MyDB.Outputs.VTTLISTENPORT                
 
                 DBMasterUsername: !Ref DBMasterUsernameParam
                 DBMasterUserPassword: !Ref DBMasterUserPasswordParam
                 DBPort: !Ref DBPortParam
                 DBName: !Ref DBNameParam
                 EC2keypair: !Ref EC2keypairParam
+
+#    ECS:
+#        Type: AWS::CloudFormation::Stack
+#        Properties:
+#            TemplateURL: https://s3.amazonaws.com/jnorback-open1/ecs-refarch-cloudformation/infrastructure/ecs-cluster.yaml
+#            Parameters:
+#                EnvironmentName: !Ref AWS::StackName
+#                InstanceType: t2.micro
+#                ClusterSize: 4
+#                VPC: !GetAtt VPC.Outputs.VPC
+#                EnvType: !Ref EnvTypeParam
+#                #
+#                #For test setup put the ECS in the Public subnet and the special public security group
+#                #
+#                SecurityGroup: !If [CreateProdResources, !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup, !GetAtt SecurityGroups.Outputs.TestingSecurityGroup] 
+#                Subnets: !If [CreateProdResources, !GetAtt VPC.Outputs.PrivateSubnets, !GetAtt VPC.Outputs.PublicSubnets]
+#                #
+#                #Added test temporary as an alternative to work on ECS without the DB
+#                #DBHost: !GetAtt MyDB.Outputs.VTTDBHOST
+#                #ListenHost: !GetAtt MyDB.Outputs.VTTLISTENHOST
+#                #ListenPort: !GetAtt MyDB.Outputs.VTTLISTENPORT
+#                DBHost: localhost
+#                ListenHost: localhost
+#                ListenPort: 3000                
+#
+#                DBMasterUsername: !Ref DBMasterUsernameParam
+#                DBMasterUserPassword: !Ref DBMasterUserPasswordParam
+#                DBPort: !Ref DBPortParam
+#                DBName: !Ref DBNameParam
+#                EC2keypair: !Ref EC2keypairParam
 
 #    ProductService:
 #        Type: AWS::CloudFormation::Stack
