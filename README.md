@@ -38,6 +38,7 @@ The span-up for the TechTestLAb infrastructure consists of a set of nested templ
  - A [Lambda Function](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) and [Auto Scaling Lifecycle Hook](https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html) to [drain Tasks from your Container Instances](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-draining.html) when an Instance is selected for Termination in your Auto Scaling Group.  THIS NEEDS TO BE ADJUSTED.
  - A Highly Available AWS RDS (Postgres) DB spanning 2 Availability Zones (active + hot standby).
  - An EC2 instance in the first AZ used purely to initiate the DataBase on start of the stack
+ - The ability to run in "test" mode with all services in the public cloud
 
 #### Infrastructure: Communication Traffic Flow
 ![infrastructure-communication-traffic-flow](images/infrastructure-communication-traffic-flow.png)
@@ -59,6 +60,7 @@ The templates below are included in this repository and reference architecture:
 | [infrastructure/load-balancers.yaml](infrastructure/load-balancers.yaml) | This template deploys an ALB to the public subnets, which exposes the various ECS services. It is created in in a separate nested template, so that it can be referenced by all of the other nested templates and so that the various ECS services can register with it. THIS NEEDS TO BE ADJUSTED. |
 | [infrastructure/ecs-cluster.yaml](infrastructure/ecs-cluster.yaml) | This template deploys an ECS cluster to the private subnets using an Auto Scaling group and installs the AWS SSM agent with related policy requirements. |
 | [infrastructure/lifecyclehook.yaml](infrastructure/lifecyclehook.yaml) | This template deploys a Lambda Function and Auto Scaling Lifecycle Hook to drain Tasks from your Container Instances when an Instance is selected for Termination in your Auto Scaling Group.
+| [infrastructure/ec2-instance-dbinit.yaml](infrastructure/ec2-instance-dbinit.yaml) | This template deploys an EC2 instance that is purely used to initiate the TechTestApp DB.
 | [services/product-service/service.yaml](services/product-service/service.yaml) | This is an example of a long-running ECS service that serves a JSON API of products. For the full source for the service, see [services/product-service/src](services/product-service/src). THIS NEEDS TO BE ADJUSTED.|
 | [services/website-service/service.yaml](services/website-service/service.yaml) | This is an example of a long-running ECS service that needs to connect to another service (product-service) via the load-balanced URL. We use an environment variable to pass the product-service URL to the containers. For the full source for this service, see [services/website-service/src](services/website-service/src). THIS NEEDS TO BE ADJUSTED.|
 | [db/postgresdb.yaml](db/postgresdb.yaml) | This template deploys a AWS RDS (Postgres) DB in a Multi-AZ setup.

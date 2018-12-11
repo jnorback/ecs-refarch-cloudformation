@@ -1,0 +1,243 @@
+Description: >
+    This template deploys an EC2 instance purely for initializing the DB in provided VPC and subnets
+    
+Parameters:
+
+    EC2keypair:
+        Description: Provides the name of the EC2 key pair
+        Type: String
+        Default: NothingAtAll
+
+    EnvType: 
+        Description: Environment type.
+        Default: test
+        Type: String
+    
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
+    InstanceType:
+        Description: Which instance type should we use to build the ECS cluster?
+        Type: String
+        Default: t2.micro
+
+    VPC:
+        Description: Choose which VPC this ECS cluster should be deployed to
+        Type: AWS::EC2::VPC::Id
+
+    EC2SubnetId:
+        Description: Choose which subnet this EC2 instance should be deployed to
+        Type: AWS::EC2::Subnet::Id
+
+    SecurityGroup:
+        Description: Select the Security Group to use for the ECS cluster hosts
+        Type: AWS::EC2::SecurityGroup::Id
+
+    #Start DB settings
+    DBMasterUsername:
+        Description: Allows one to set the DB master user name for the DB elsewhere
+        Type: String
+        Default: MyName
+
+    DBMasterUserPassword:
+        Description: Allows one to set the DB master user name password for the DB elsewhere
+        Type: String
+        Default: MyPassword
+
+    DBName:
+        Description: name of the database to use on the database server
+        Type: String
+        Default: app
+
+    DBPort:
+        Description: port to connect to the database server on
+        Type: String
+        Default: 5432
+
+    DBHost:
+        Description: host to connect to, ip or dns entry
+        Type: String
+        Default: localhost
+
+    ListenHost:
+        Description: listener configuration for the application, 0.0.0.0 for all IP, or specify ip to listen on
+        Type: String
+        Default: localhost
+
+    ListenPort:
+        Description: port to bind on the local server
+        Type: String
+        Default: 3000
+
+    #End DB settings
+
+Mappings:
+
+    # These are the latest ECS optimized AMIs as of Feb 2018:
+    #
+    #   amzn-ami-2017.09.h-amazon-ecs-optimized
+    #   ECS agent:    1.17.1
+    #   Docker:       17.09.1-ce
+    #   ecs-init:     1.17.1-1
+    #
+    # You can find the latest available on this page of our documentation:
+    # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+    # (note the AMI identifier is region specific)
+
+    AWSRegionToAMI:
+        us-east-2:
+            AMI: ami-b86a5ddd
+        us-east-1:
+            AMI: ami-a7a242da
+        us-west-2:
+            AMI: ami-92e06fea
+        us-west-1:
+            AMI: ami-9ad4dcfa
+        eu-west-3:
+            AMI: ami-698b3d14
+        eu-west-2:
+            AMI: ami-f4e20693
+        eu-west-1:
+            AMI: ami-0693ed7f
+        eu-central-1:
+            AMI: ami-0799fa68
+        ap-northeast-2:
+            AMI: ami-a5dd70cb
+        ap-northeast-1:
+            AMI: ami-68ef940e
+        ap-southeast-2:
+            AMI: ami-ee884f8c
+        ap-southeast-1:
+            AMI: ami-0a622c76
+        ca-central-1:
+            AMI: ami-5ac94e3e
+        ap-south-1:
+            AMI: ami-2e461a41
+        sa-east-1:
+            AMI: ami-d44008b8	
+
+Resources:
+
+    EC2DBInit:
+        Type: AWS::EC2::Instance
+        Properties:
+            AvailabilityZone: !Select [ 0, !GetAZs '' ]
+            ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
+            InstanceType: !Ref InstanceType
+            SecurityGroupIds:
+                - !Ref SecurityGroup
+            #SecurityGroups:
+            #    - !Ref SecurityGroup
+            KeyName: !Ref EC2keypair
+            SubnetId: !Ref EC2SubnetId
+            Tags:
+                - Key: Name
+                  Value: !Sub ${EnvironmentName} EC2 DB init host
+                               
+            UserData:
+                "Fn::Base64": !Sub |
+                    #!/bin/bash
+                    yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+                    yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+                    yum install -y aws-cfn-bootstrap hibagent
+                    /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2DBInit --configsets MyconfigSets
+                    
+
+        Metadata:
+            AWS::CloudFormation::Init:
+            #The cfn-init helper script processes these configuration sections in the following order: 
+            # packages, groups, users, sources, files, commands, and then services.
+            #If you require a different order, separate your sections into different config keys, 
+            # and then use a configset that specifies the order in which the config keys should be processed. 
+                #config:
+                    configSets:
+                        MyconfigSets:
+                          - ec2startup
+                          - vibrato1
+                          - vibrato2
+
+                    ############ start of ecsstartup
+                    ec2startup:
+                      packages:
+                          yum:
+                              awslogs: []
+                               
+                      locale: 
+                              en_US.utf8
+
+                      commands:
+                          10_add_vibrato_user:
+                              command: /usr/sbin/useradd vibrato
+
+                    ############ end of ecsstartup 
+
+                    ############ start of vibrato1                  
+                    vibrato1:
+                       packages:
+                             yum:
+                                  wget: []                    
+                                  unzip: []
+                                  bind-utils: []
+
+                       files:  
+                          "/home/vibrato/appinstallation.sh":
+                          #To be run later to download the TechTestApp
+                              mode: "000700"
+                              owner: vibrato
+                              group: vibrato
+                              content: !Sub |
+                                  #!/bin/bash -ex
+                                  curl -s https://api.github.com/repos/vibrato/TechTestApp/releases/latest | grep "browser_download_url" | grep linux64 | cut -d '"' -f 4 | wget -qi -
+
+                          "/home/vibrato/appenv":
+                          #To possible be added later to the /home/vibrato/.bashrc file for the TechTestApp
+                              mode: "000700"
+                              owner: vibrato
+                              group: vibrato
+                              content: !Sub |
+                                  export VTT_DBUSER=${DBMasterUsername}
+                                  export VTT_DBPASSWORD=${DBMasterUserPassword}
+                                  export VTT_DBNAME=${DBName}
+                                  export VTT_DBPORT=${DBPort}
+                                  export VTT_DBHOST=${DBHost}
+                                  export VTT_LISTENHOST=${ListenHost}
+
+                          "/home/vibrato/conf.toml":
+                          #To be copied later to the /home/vibrato/distr/conf.toml file for the TechTestApp
+                              mode: "000400"
+                              owner: root
+                              group: root
+                              content: !Sub |
+                                  "DbUser" = "${DBMasterUsername}"
+                                  "DbPassword" = "${DBMasterUserPassword}"
+                                  "DbName" = "${DBName}"
+                                  "DbPort" = "${DBPort}"
+                                  "DbHost" = "l${DBHost}"
+                                  "ListenHost" = "${ListenHost}"
+                                  "ListenPort" = "${ListenPort}"
+                                
+                    ############ end of vibrato1 
+                    
+                    ############ start of vibrato2                  
+                    vibrato2:
+                      commands:
+                          01_download_TechTestApp:
+                              command: "/home/vibrato/appinstallation.sh > /home/vibrato/appinstallation.out 2>&1"
+                              cwd: "/home/vibrato"
+                          02_unzip_TechTestApp:
+                              command: "unzip TechTestApp* >> /home/vibrato/appinstallation.out 2>&1"
+                              cwd: "/home/vibrato"
+                          
+                          03_move_old_conf.toml:
+                              command: "mv /home/vibrato/dist/conf.toml /home/vibrato/dist/conf.toml.org"
+
+                          04_copy_new_conf.toml:
+                              command: "cp -p /home/vibrato/conf.toml /home/vibrato/dist/conf.toml"
+
+                          05_init_db_TechTestApp:
+                              command: "/home/vibrato/dist/TechTestApp updatedb > jan_updatedb.out 2>&1"
+                              cwd: "/home/vibrato/dist"
+                                                            
+
+                    ############ end of vibrato2 
