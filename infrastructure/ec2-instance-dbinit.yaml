@@ -213,7 +213,7 @@ Resources:
                                   "DbPassword" = "${DBMasterUserPassword}"
                                   "DbName" = "${DBName}"
                                   "DbPort" = "${DBPort}"
-                                  "DbHost" = "l${DBHost}"
+                                  "DbHost" = "${DBHost}"
                                   "ListenHost" = "${ListenHost}"
                                   "ListenPort" = "${ListenPort}"
                                 
